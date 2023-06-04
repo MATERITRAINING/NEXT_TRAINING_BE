@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  db:
+    image: mysql:8.0
+    container_name: mysql8-db
+
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: root
+      TZ: Asia/Jakarta
+    ports:
+      - 3307:3306
+    networks:
+      - arc_network
+    volumes:
+      - ./app/:/user
+
+networks:
+  arc_network:
+    external: true
