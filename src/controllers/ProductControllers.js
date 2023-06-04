@@ -133,6 +133,36 @@ async function updateProduct(req, res) {
   }
 }
 
+async function deleteProduct(req, res) {
+  try {
+    const { id } = req.params;
+
+    const remove = await ProductModel.destroy({
+      where: {
+        id: id,
+      },
+    });
+
+    if (remove === 0) {
+      return res.status(422).json({
+        status: "failed",
+        msg: "Product Tidak Ditemukan",
+      });
+    } else {
+      return res.json({
+        status: "success",
+        msg: "Product berhasil dihapus",
+      });
+    }
+  } catch (err) {
+    console.log("err", err);
+    res.status(403).json({
+      status: "Fail",
+      msg: "Ada Kesalahan",
+    });
+  }
+}
+
 async function deleteBulkProduct(req, res) {
   try {
     const { payload } = req.body;
@@ -171,7 +201,20 @@ async function deleteBulkProduct(req, res) {
 }
 
 async function listProduct(req, res) {
-  let { page, pageSize, offset, q, name, description } = req.query;
+  let {
+    page,
+    pageSize,
+    offset,
+    q,
+    name,
+    description,
+    openDateFrom,
+    openDateTo,
+    orderBy = 'id',
+    sortBy = 'desc'
+
+
+  } = req.query;
   try {
     const Products = await ProductModel.findAndCountAll({
       where: {
@@ -209,9 +252,15 @@ async function listProduct(req, res) {
             [Op.substring]: description,
           },
         }),
+        ...(checkQuery(openDateFrom) && {
+          openDate: {
+            [Op.between]: [openDateFrom, openDateTo],
+          },
+        }),
       },
       limit: pageSize,
       offset: offset,
+      order : [[orderBy, sortBy]]
     });
 
     return res.json({
@@ -241,4 +290,5 @@ module.exports = {
   deleteBulkProduct,
   detailProduct,
   updateProduct,
+  deleteProduct,
 };

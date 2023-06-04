@@ -22,6 +22,7 @@ const {
   listProduct,
   detailProduct,
   updateProduct,
+  deleteProduct,
 } = require("../controllers/ProductControllers");
 
 //auth
@@ -40,6 +41,7 @@ router.post("/product/delete-bulk", deleteBulkProduct);
 router.get("/product/list", listProduct);
 router.get("/product/:id/detail", detailProduct);
 router.put("/product/:id/update", updateProduct);
+router.delete("/product/:id/delete", deleteProduct);
 
 //upload
 
