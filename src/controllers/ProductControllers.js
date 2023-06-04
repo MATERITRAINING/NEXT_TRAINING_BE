@@ -6,11 +6,29 @@ async function createBulkProduct(req, res) {
   try {
     const { payload } = req.body;
 
-    await ProductModel.createBulk(payload);
+    let berhasil = 0;
+    let gagal = 0;
+    await Promise.all(
+      payload.map(async (item) => {
+        try {
+          await ProductModel.create({
+            name: item.name,
+            description: item.description,
+            userId: req.id,
+            category: item.category,
+            openDate: item.openDate,
+            cost: item.cost,
+          });
+          berhasil += 1;
+        } catch {
+          gagal += 1;
+        }
+      })
+    );
 
     return res.json({
-      msg: "Product berhasil ditambahkan",
       status: "success",
+      msg: `Berhasil membuat ${berhasil} dan gagal menghapus ${gagal}`,
     });
   } catch (err) {
     res.status(403).json({
@@ -181,20 +199,16 @@ async function listProduct(req, res) {
             },
           ],
         }),
-        ...(
-          checkQuery(name) && {
-            name: {
-              [Op.substring]: name,
-            },
-          }
-        ),
-        ...(
-          checkQuery(description) && {
-            description: {
-              [Op.substring]: description,
-            },
-          }
-        ),
+        ...(checkQuery(name) && {
+          name: {
+            [Op.substring]: name,
+          },
+        }),
+        ...(checkQuery(description) && {
+          description: {
+            [Op.substring]: description,
+          },
+        }),
       },
       limit: pageSize,
       offset: offset,
