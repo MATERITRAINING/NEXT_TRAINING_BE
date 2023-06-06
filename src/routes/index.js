@@ -34,7 +34,7 @@ router.post("/refresh-token", refreshToken);
 
 router.use(jwtValidateMiddleware);
 
-router.get("/profile", profile)
+router.get("/permission", profile)
 router.post("/product/create", createProduct);
 router.post("/product/create-bulk", createBulkProduct);
 router.post("/product/delete-bulk", deleteBulkProduct);

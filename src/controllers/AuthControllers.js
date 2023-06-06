@@ -1,32 +1,72 @@
 const UserModel = require("../models").users;
-
+const UserRoleModel = require("../models").userRole;
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const sendEmailHandle = require("../mail");
 const crypto = require("crypto");
 const dayjs = require("dayjs");
 require("dotenv").config();
+const models = require("../models");
+const { QueryTypes } = require("sequelize");
+const {sequelize} = require("../models");
+
 
 async function profile(req, res) {
+  const id = req.id;
   try {
-    const user = await UserModel.findOne({
-      where: {
-        id: req.id,
-      },
-    });
+    const permission = await sequelize.query(
+      "SELECT users.id,users.name,users.email,userRoles.roleName AS role,userRoles.accessName,userRoles.created,userRoles.updated,userRoles.list,userRoles.deleted,userRoles.detail,userRoles.menuName FROM users JOIN(SELECT userRoles.roleMenuId,userRoles.userId,roleMenus.accessName,roleMenus.created,roleMenus.updated,roleMenus.list,roleMenus.deleted,roleMenus.detail,roleMenus.menuName,roleMenus.roleName FROM userRoles JOIN(SELECT roleMenus.id,roleMenus.roleId,roleMenus.accessMenuId,roles.roleName,accessMenus.accessName,accessMenus.created,accessMenus.updated,accessMenus.list,accessMenus.deleted,accessMenus.detail,accessMenus.menuId,accessMenus.menuName FROM roleMenus JOIN roles ON(roleMenus.roleId=roles.id)JOIN(SELECT accessMenus.id,accessMenus.accessName,accessMenus.created,accessMenus.updated,accessMenus.list,accessMenus.deleted,accessMenus.detail,accessMenus.menuId,menus.menuName FROM accessMenus JOIN menus ON(accessMenus.menuId=menus.id))AS accessMenus ON(roleMenus.accessMenuId=accessMenus.id))AS roleMenus ON(userRoles.roleMenuId=roleMenus.id))AS userRoles ON(users.id=userRoles.userId)WHERE users.id=:id",
+      {
+        replacements: { id: id },
+        type: QueryTypes.SELECT,
+        raw: true,
+      }
+    );
+
+    const permissions = {
+      role : [],
+      menu : [],
+      access : []
+
+    }
+    permission.map((item)=> {
+      
+
+      
+      if([...permissions.role].includes(item.role) === false) {
+        permissions.role = [...permissions.role, item.role]
+      }
+
+      if([...permissions.menu].includes(item.menuName) === false) {
+        permissions.menu = [...permissions.menu, item.menuName]
+      }
+
+      permissions.access.push({
+        accessName :item.accessName,
+        permission : {
+          created : item.created,
+          updated: item.updated,
+          list:item.list,
+          deleted : item.deleted,
+          detail:item.detail
+        }
+      })
+
+      
+    })
 
     res.json({
       status: "Success",
-      msg: "Profile ditemukan",
-      user: user,
-      permission: [
-        {
-          module: "Artikel",
-          role: ["create, read, delete, update"],
-        },
-      ],
+      msg: "Permission Found",
+     user: {
+      id : permission[0].id,
+      name : permission[0].name,
+      email : permission[0].email
+     },
+      permissions : permissions
     });
   } catch (err) {
+    console.log("er", err);
     res.status(403).json({
       status: "Fail",
       msg: "Ada Kesalahan",
