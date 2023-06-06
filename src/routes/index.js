@@ -5,6 +5,7 @@ const {
   googleLogin,
   refreshToken,
   profile,
+  profileById,
 } = require("../controllers/AuthControllers");
 
 const router = express.Router();
@@ -31,7 +32,7 @@ router.post("/register", register);
 router.post("/login", login);
 router.post("/google-login", googleLogin);
 router.post("/refresh-token", refreshToken);
-
+router.get("/permission-by-id/:id", profileById)
 router.use(jwtValidateMiddleware);
 
 router.get("/permission", profile)
