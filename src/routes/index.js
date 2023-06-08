@@ -32,10 +32,10 @@ router.post("/register", register);
 router.post("/login", login);
 router.post("/google-login", googleLogin);
 router.post("/refresh-token", refreshToken);
-router.get("/permission-by-id/:id", profileById)
+router.get("/permission-by-id/:id", profileById);
 router.use(jwtValidateMiddleware);
 
-router.get("/permission", profile)
+router.get("/permission", profile);
 router.post("/product/create", createProduct);
 router.post("/product/create-bulk", createBulkProduct);
 router.post("/product/delete-bulk", deleteBulkProduct);
@@ -55,6 +55,26 @@ router.post("/upload/single", uploadSingle, (req, res) => {
       filename: req.file.filename,
       fileUrl: `${req.protocol}://${req.get("host")}/${req.file.filename}`,
     },
+  });
+});
+
+router.post("/upload/multi", uploadMulti, (req, res) => {
+  const files = req.files;
+
+  const data = files?.map((item) => {
+    return {
+      file: item.file,
+      filename: item.filename,
+      fileUrl: `${req.protocol}://${req.get("host")}/${item.filename}`,
+    };
+  });
+
+  res.send({
+    status: "Success",
+    msg: "Upload Success",
+    data: data,
+
+    // fileUrl : `${req.protocol}://${req.get("host")}/${req.file.filename}`
   });
 });
 // router.post("/kelas/create", createKelas)
